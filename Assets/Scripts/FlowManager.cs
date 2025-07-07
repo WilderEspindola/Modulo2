@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -9,9 +8,10 @@ using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 public class FlowManager : MonoBehaviour
 {
-    public int A, B, C, D, E, F; // Valores aleatorios para cubos
+    // Valores de los cubos
+    public int A, B, C, D, E, F;
 
-    // Variables para guardar el valor colocado en cada socket
+    // Valores actuales en los sockets
     public int SocketValue1 = 0;
     public int SocketValue2 = 0;
     public int SocketValue3 = 0;
@@ -19,11 +19,15 @@ public class FlowManager : MonoBehaviour
     public int SocketValue5 = 0;
     public int SocketValue6 = 0;
 
-    public List<GameObject> Sockets = new List<GameObject>(); // Lista con 6 sockets
-    public GameObject Socket4;
+    public List<GameObject> Sockets = new List<GameObject>();
     public GameObject HandAnimation;
 
     void Start()
+    {
+        InitializeGame();
+    }
+
+    private void InitializeGame()
     {
         GameManager.Instance.UI_Messages.text = "Hi! Let's Calculate Numbers. Do a thumbs up to move ahead.";
         GameManager.Instance.Timer.enabled = false;
@@ -32,7 +36,6 @@ public class FlowManager : MonoBehaviour
         GameManager.Instance.LeftThumbsUp.gameObject.SetActive(false);
         GameManager.Instance.RightShaka.gameObject.SetActive(false);
         DisableSockets();
-        Socket4.SetActive(false);
         HandAnimation.SetActive(false);
     }
 
@@ -41,7 +44,6 @@ public class FlowManager : MonoBehaviour
         GameManager.Instance.RightShaka.gameObject.SetActive(true);
         GameManager.Instance.MathematicsValues.gameObject.SetActive(true);
         EnableSockets();
-        Socket4.SetActive(true);
         GameManager.Instance.RightThumbsUp.gameObject.SetActive(false);
         GameManager.Instance.UI_Messages.text = "Place the cubes in the sockets so that the left side equals the right side. Perform a Shaka gesture to START.";
         HandAnimation.SetActive(true);
@@ -53,7 +55,6 @@ public class FlowManager : MonoBehaviour
         HandAnimation.SetActive(false);
         GenerateValuesABCDEF();
         StartCountdown();
-        Socket4.SetActive(true);
     }
 
     public void LeftHandThumpsUpPerformed()
@@ -87,7 +88,39 @@ public class FlowManager : MonoBehaviour
         CalculateValue();
     }
 
-    // Actualiza el valor almacenado para un socket específico según el cubo colocado
+    public void CalculateValue()
+    {
+        // Reiniciar valores antes de cada cálculo
+        SocketValue1 = 0;
+        SocketValue2 = 0;
+        SocketValue3 = 0;
+        SocketValue4 = 0;
+        SocketValue5 = 0;
+        SocketValue6 = 0;
+
+        // Actualizar los valores en función de los cubos colocados
+        for (int i = 0; i < Sockets.Count; i++)
+        {
+            UpdateSocketValue(i);
+        }
+
+        int leftSum = SocketValue1 + SocketValue2 + SocketValue3;
+        int rightSum = SocketValue4 + SocketValue5 + SocketValue6;
+
+        Debug.Log($"Left Sum: {leftSum} / Right Sum: {rightSum}");
+
+        if (leftSum == rightSum && (leftSum != 0 || rightSum != 0))
+        {
+            GameManager.Instance.UI_Messages.text = $"✅ Correct! {leftSum} = {rightSum}\nRaise your left hand and do a thumbs-up to play again.";
+            GameManager.Instance.LeftThumbsUp.gameObject.SetActive(true);
+        }
+        else
+        {
+            GameManager.Instance.UI_Messages.text = $"❌ Incorrect! {leftSum} ≠ {rightSum}\nRaise your left hand and do a thumbs-up to retry.";
+            GameManager.Instance.LeftThumbsUp.gameObject.SetActive(true);
+        }
+    }
+
     public void UpdateSocketValue(int socketIndex)
     {
         var interactor = Sockets[socketIndex].GetComponent<XRSocketInteractor>();
@@ -119,32 +152,6 @@ public class FlowManager : MonoBehaviour
             case 3: SocketValue4 = value; break;
             case 4: SocketValue5 = value; break;
             case 5: SocketValue6 = value; break;
-            default: break;
-        }
-    }
-
-    public void CalculateValue()
-    {
-        // Primero actualizamos los valores de cada socket
-        for (int i = 0; i < Sockets.Count; i++)
-        {
-            UpdateSocketValue(i);
-        }
-
-        int leftSum = SocketValue1 + SocketValue2 + SocketValue3;
-        int rightSum = SocketValue4 + SocketValue5 + SocketValue6;
-
-        Debug.Log($"Suma Izquierda: {leftSum}, Suma Derecha: {rightSum}");
-
-        if (leftSum == rightSum)
-        {
-            GameManager.Instance.UI_Messages.text = "✅ Correct! Both sides are equal.\nRaise your left hand and do a thumbs-up to play again.";
-            GameManager.Instance.LeftThumbsUp.gameObject.SetActive(true);
-        }
-        else
-        {
-            GameManager.Instance.UI_Messages.text = "❌ Incorrect! Try again.\nRaise your left hand and do a thumbs-up to retry.";
-            GameManager.Instance.LeftThumbsUp.gameObject.SetActive(true);
         }
     }
 
@@ -214,11 +221,11 @@ public class FlowManager : MonoBehaviour
             values.GetChild(8).GetComponent<TextMeshPro>().text = E.ToString(); // E
             values.GetChild(10).GetComponent<TextMeshPro>().text = F.ToString(); // F
         }
-        catch (Exception e)
+        catch (System.Exception e)
         {
-            Debug.LogError("Error al asignar textos: " + e.Message);
+            Debug.LogError("Error assigning values to text elements: " + e.Message);
         }
 
-        Debug.Log($"Generados: A={A}, B={B}, C={C} / D={D}, E={E}, F={F}");
+        Debug.Log($"Generated values: A={A}, B={B}, C={C} | D={D}, E={E}, F={F}");
     }
 }
