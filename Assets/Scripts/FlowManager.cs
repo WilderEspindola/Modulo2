@@ -21,6 +21,7 @@ public class FlowManager : MonoBehaviour
 
     public List<GameObject> Sockets = new List<GameObject>();
     public GameObject HandAnimation;
+    public bool IsPracticeMode = false;
 
     void Start()
     {
@@ -29,37 +30,56 @@ public class FlowManager : MonoBehaviour
 
     private void InitializeGame()
     {
-        GameManager.Instance.UI_Messages.text = "Hi! Let's Calculate Numbers. Do a thumbs up to move ahead.";
+        // Configuración inicial con ambos gestos visibles
+        GameManager.Instance.UI_Messages.text = "Usa ✋ Thumbs Up para practicar o 🤙 Shaka para comenzar";
         GameManager.Instance.Timer.enabled = false;
         GameManager.Instance.MathematicsValues.gameObject.SetActive(false);
         GameManager.Instance.RightThumbsUp.gameObject.SetActive(true);
+        GameManager.Instance.RightShaka.gameObject.SetActive(true);
         GameManager.Instance.LeftThumbsUp.gameObject.SetActive(false);
-        GameManager.Instance.RightShaka.gameObject.SetActive(false);
         DisableSockets();
         HandAnimation.SetActive(false);
+        IsPracticeMode = false;
     }
 
     public void RightHandThumpsUpPerformed()
     {
-        GameManager.Instance.RightShaka.gameObject.SetActive(true);
+        // Entrar en modo práctica
+        IsPracticeMode = true;
+        GameManager.Instance.UI_Messages.text = "Modo Práctica: Coloca los cubos para practicar. Usa ✋ Thumbs Up izquierdo para salir.";
+        GameManager.Instance.RightThumbsUp.gameObject.SetActive(false);
+        GameManager.Instance.RightShaka.gameObject.SetActive(false);
+        GameManager.Instance.LeftThumbsUp.gameObject.SetActive(true);
         GameManager.Instance.MathematicsValues.gameObject.SetActive(true);
         EnableSockets();
-        GameManager.Instance.RightThumbsUp.gameObject.SetActive(false);
-        GameManager.Instance.UI_Messages.text = "Place the cubes in the sockets so that the left side equals the right side. Perform a Shaka gesture to START.";
         HandAnimation.SetActive(true);
     }
 
     public void RightShakaPerformed()
     {
+        // Comenzar juego directamente
+        IsPracticeMode = false;
+        GameManager.Instance.UI_Messages.text = "¡Comienza el juego! Coloca los cubos para igualar ambos lados.";
+        GameManager.Instance.RightThumbsUp.gameObject.SetActive(false);
         GameManager.Instance.RightShaka.gameObject.SetActive(false);
-        HandAnimation.SetActive(false);
+        GameManager.Instance.MathematicsValues.gameObject.SetActive(true);
+        EnableSockets();
         GenerateValuesABCDEF();
         StartCountdown();
     }
 
     public void LeftHandThumpsUpPerformed()
     {
-        RestartScene();
+        if (IsPracticeMode)
+        {
+            // Salir del modo práctica
+            InitializeGame();
+        }
+        else
+        {
+            // Reiniciar escena al finalizar el juego
+            RestartScene();
+        }
     }
 
     public void StartCountdown()
@@ -111,12 +131,12 @@ public class FlowManager : MonoBehaviour
 
         if (leftSum == rightSum && (leftSum != 0 || rightSum != 0))
         {
-            GameManager.Instance.UI_Messages.text = $"✅ Correct! {leftSum} = {rightSum}\nRaise your left hand and do a thumbs-up to play again.";
+            GameManager.Instance.UI_Messages.text = $"✅ Correcto! {leftSum} = {rightSum}\nUsa ✋ Thumbs Up izquierdo para jugar de nuevo.";
             GameManager.Instance.LeftThumbsUp.gameObject.SetActive(true);
         }
         else
         {
-            GameManager.Instance.UI_Messages.text = $"❌ Incorrect! {leftSum} ≠ {rightSum}\nRaise your left hand and do a thumbs-up to retry.";
+            GameManager.Instance.UI_Messages.text = $"❌ Incorrecto! {leftSum} ≠ {rightSum}\nUsa ✋ Thumbs Up izquierdo para reintentar.";
             GameManager.Instance.LeftThumbsUp.gameObject.SetActive(true);
         }
     }
